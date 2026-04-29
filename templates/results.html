@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Results - GC Chat Log Evaluator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 { color: #1a1a2e; margin-bottom: 0.5rem; }
+        h2 { margin-top: 1.5rem; }
+        h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        a { color: #4a90d9; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .nav { margin-bottom: 1.5rem; }
+        .no-results {
+            background: #fff; border: 1px solid #ddd; border-radius: 4px;
+            padding: 2rem; text-align: center; color: #666;
+        }
+        .report-header {
+            background: #fff; border: 1px solid #ddd; border-radius: 4px;
+            padding: 1.5rem; margin-bottom: 1.5rem;
+        }
+        .report-header h2 { margin-top: 0; }
+        .stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem; margin-top: 1rem;
+        }
+        .stat-box {
+            background: #f9f9f9; border: 1px solid #eee; border-radius: 4px;
+            padding: 0.8rem; text-align: center;
+        }
+        .stat-box .value { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+        .stat-box .label { font-size: 0.85rem; color: #666; margin-top: 0.2rem; }
+        .running-badge {
+            display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px;
+            font-weight: 600; font-size: 0.85rem; background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2;
+        }
+        .goal-section {
+            background: #fff; border: 1px solid #ddd; border-radius: 4px;
+            padding: 1rem 1.5rem; margin-bottom: 1rem;
+        }
+        .goal-section h3 { margin-top: 0; }
+        .goal-rate {
+            font-size: 0.9rem; color: #666; font-weight: normal;
+        }
+        .eval-item {
+            padding: 0.6rem 0.8rem; margin-bottom: 0.5rem;
+            border-radius: 4px; font-size: 0.9rem;
+            border-left: 3px solid #ccc;
+        }
+        .eval-item.success {
+            background: #e8f5e9; border-left-color: #4caf50;
+        }
+        .eval-item.failure {
+            background: #fff3e0; border-left-color: #ff9800;
+        }
+        .eval-id { font-weight: 600; }
+        .eval-explanation { color: #555; margin-top: 0.2rem; font-size: 0.85rem; }
+        .unclassified-section {
+            background: #fff; border: 1px solid #ddd; border-radius: 4px;
+            padding: 1rem 1.5rem; margin-bottom: 1rem;
+        }
+        .unclassified-section h3 { margin-top: 0; color: #e65100; }
+        .conv-messages {
+            margin-top: 0.5rem; padding: 0.5rem 0.8rem;
+            background: #f9f9f9; border-radius: 4px; font-size: 0.82rem;
+            max-height: 200px; overflow-y: auto;
+        }
+        .conv-messages .msg { margin-bottom: 0.3rem; line-height: 1.4; }
+        .conv-messages .msg-role {
+            font-weight: 600; text-transform: uppercase; font-size: 0.7rem;
+            letter-spacing: 0.03em;
+        }
+        .conv-messages .msg-role.agent { color: #1565c0; }
+        .conv-messages .msg-role.customer { color: #2e7d32; }
+        .conv-toggle {
+            font-size: 0.8rem; color: #4a90d9; cursor: pointer;
+            margin-top: 0.3rem; display: inline-block;
+        }
+        .conv-toggle:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="nav"><a href="/">&larr; Back to Home</a></div>
+    <h1>Evaluation Results</h1>
+
+    <div id="static-results">
+    {% if report is none %}
+        <div class="no-results" id="no-results">
+            <p>Waiting for results...</p>
+            <p><span class="running-badge">Evaluation running</span></p>
+        </div>
+    {% else %}
+        <div class="report-header">
+            <h2>{{ report.suite_name }}</h2>
+            <p style="color:#666;font-size:0.9rem;">
+                Completed: {{ report.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                &middot; Duration: {{ "%.1f"|format(report.duration_seconds) }}s
+            </p>
+            <div class="stats">
+                <div class="stat-box"><div class="value">{{ report.total_conversations }}</div><div class="label">Total Conversations</div></div>
+                <div class="stat-box"><div class="value">{{ report.total_successes }}</div><div class="label">Successes</div></div>
+                <div class="stat-box"><div class="value">{{ report.total_failures }}</div><div class="label">Failures</div></div>
+                <div class="stat-box"><div class="value">{{ "%.1f"|format(report.overall_success_rate * 100) }}%</div><div class="label">Overall Success Rate</div></div>
+            </div>
+        </div>
+
+        <h2>Results by Goal</h2>
+        {% for goal_summary in report.goal_summaries %}
+        <div class="goal-section">
+            <h3>{{ goal_summary.goal_name }} <span class="goal-rate">({{ "%.0f"|format(goal_summary.success_rate * 100) }}% success rate)</span></h3>
+            {% for evaluation in report.conversation_evaluations %}
+                {% if evaluation.classified_goal == goal_summary.goal_name %}
+                <div class="eval-item {{ 'success' if evaluation.success else 'failure' }}">
+                    <div class="eval-id">
+                        {{ '&#10003;' if evaluation.success else '&#10007;' }}
+                        {{ evaluation.conversation_id }}
+                    </div>
+                    <div class="eval-explanation">{{ evaluation.achievement_explanation }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        {% if report.unclassified_count > 0 %}
+        <div class="unclassified-section">
+            <h3>Unclassified ({{ report.unclassified_count }})</h3>
+            {% for evaluation in report.conversation_evaluations %}
+                {% if evaluation.classified_goal == "unclassified" %}
+                <div class="eval-item failure">
+                    <div class="eval-id">{{ evaluation.conversation_id }}</div>
+                    <div class="eval-explanation">{{ evaluation.classification_reasoning }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="margin-top:1.5rem;">
+            <a href="/results/export?format=csv" style="display:inline-block;padding:0.6rem 1.2rem;border-radius:4px;font-weight:600;font-size:0.9rem;margin-right:0.5rem;background:#4a90d9;color:white;">Export CSV</a>
+            <a href="/results/export?format=json" style="display:inline-block;padding:0.6rem 1.2rem;border-radius:4px;font-weight:600;font-size:0.9rem;background:#4a90d9;color:white;">Export JSON</a>
+        </div>
+    {% endif %}
+    </div>
+
+    <!-- Live results container (populated by SSE) -->
+    <div id="live-results" style="display:none;">
+        <div id="running-banner" style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:4px;padding:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;">
+            <div style="width:24px;height:24px;border:3px solid #ffe0b2;border-top:3px solid #e65100;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0;"></div>
+            <div>
+                <div style="font-weight:600;color:#e65100;">Evaluation running...</div>
+                <div style="font-size:0.85rem;color:#666;">Elapsed: <span id="elapsed-time">0s</span> &middot; <span id="running-status">Starting</span></div>
+            </div>
+        </div>
+        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+        <div class="report-header">
+            <h2 id="live-suite-name">Running...</h2>
+            <div class="stats">
+                <div class="stat-box"><div class="value" id="live-total">0</div><div class="label">Total Conversations</div></div>
+                <div class="stat-box"><div class="value" id="live-successes">0</div><div class="label">Successes</div></div>
+                <div class="stat-box"><div class="value" id="live-failures">0</div><div class="label">Failures</div></div>
+                <div class="stat-box"><div class="value" id="live-rate">-</div><div class="label">Overall Success Rate</div></div>
+            </div>
+        </div>
+        <h2>Evaluations</h2>
+        <div id="live-evaluations-list"></div>
+    </div>
+
+    <script>
+    (function() {
+        var totalCompleted = 0, totalSuccesses = 0, totalFailures = 0;
+        var sseActive = false;
+        var startTime = null;
+        var timerInterval = null;
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(function() {
+                var elapsed = Math.floor((Date.now() - startTime) / 1000);
+                var mins = Math.floor(elapsed / 60);
+                var secs = elapsed % 60;
+                var text = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+                document.getElementById('elapsed-time').textContent = text;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function updateRunningStatus(text) {
+            var el = document.getElementById('running-status');
+            if (el) el.textContent = text;
+        }
+
+        function hideBanner() {
+            var banner = document.getElementById('running-banner');
+            if (banner) banner.style.display = 'none';
+        }
+
+        function startSSE() {
+            var evtSource = new EventSource('/progress');
+            sseActive = true;
+
+            document.getElementById('static-results').style.display = 'none';
+            document.getElementById('live-results').style.display = 'block';
+            startTimer();
+
+            evtSource.onmessage = function(event) {
+                var data = JSON.parse(event.data);
+
+                if (data.event_type === 'evaluation_started') {
+                    document.getElementById('live-suite-name').textContent = data.message;
+                    document.getElementById('live-total').textContent = data.total || 0;
+                    updateRunningStatus('Evaluation started');
+                }
+
+                if (data.event_type === 'evaluation_in_progress') {
+                    updateRunningStatus('Evaluating: ' + data.conversation_id + ' (' + data.current + '/' + data.total + ')');
+                }
+
+                if (data.event_type === 'evaluation_completed') {
+                    totalCompleted++;
+                    if (data.success) { totalSuccesses++; } else { totalFailures++; }
+                    updateStats();
+                    renderEvaluation(data);
+                }
+
+                if (data.event_type === 'evaluation_run_completed') {
+                    evtSource.close();
+                    sseActive = false;
+                    stopTimer();
+                    hideBanner();
+                    document.getElementById('live-suite-name').textContent += ' — Complete';
+                    if (data.overall_success_rate !== null && data.overall_success_rate !== undefined) {
+                        document.getElementById('live-rate').textContent = (data.overall_success_rate * 100).toFixed(1) + '%';
+                    }
+                    // Add export buttons
+                    var exportDiv = document.createElement('div');
+                    exportDiv.style.marginTop = '1.5rem';
+                    exportDiv.innerHTML = '<a href="/results/export?format=csv" style="display:inline-block;padding:0.6rem 1.2rem;border-radius:4px;font-weight:600;font-size:0.9rem;margin-right:0.5rem;background:#4a90d9;color:white;text-decoration:none;">Export CSV</a>' +
+                        '<a href="/results/export?format=json" style="display:inline-block;padding:0.6rem 1.2rem;border-radius:4px;font-weight:600;font-size:0.9rem;background:#4a90d9;color:white;text-decoration:none;">Export JSON</a>';
+                    document.getElementById('live-evaluations-list').appendChild(exportDiv);
+                }
+            };
+
+            evtSource.onerror = function() { evtSource.close(); };
+        }
+
+        function updateStats() {
+            document.getElementById('live-successes').textContent = totalSuccesses;
+            document.getElementById('live-failures').textContent = totalFailures;
+            var rate = totalCompleted > 0 ? ((totalSuccesses / totalCompleted) * 100).toFixed(1) + '%' : '-';
+            document.getElementById('live-rate').textContent = rate;
+        }
+
+        function renderEvaluation(data) {
+            var evalData = data.conversation_evaluation || {};
+            var item = document.createElement('div');
+            item.className = 'eval-item ' + (data.success ? 'success' : 'failure');
+
+            // Header: icon + conversation ID + classified goal
+            var header = '<div class="eval-id">' +
+                (data.success ? '&#10003;' : '&#10007;') + ' ' +
+                escapeHtml(data.conversation_id || '') +
+                ' <span style="font-weight:normal;color:#666;">(' + escapeHtml(data.classified_goal || 'unclassified') + ')</span>' +
+                '</div>';
+
+            // Explanation
+            var explanation = evalData.achievement_explanation || evalData.classification_reasoning || '';
+            var explHtml = explanation ? '<div class="eval-explanation">' + escapeHtml(explanation) + '</div>' : '';
+
+            // Conversation messages (collapsible)
+            var convHtml = '';
+            var messages = evalData.conversation || [];
+            if (messages.length > 0) {
+                var toggleId = 'conv-' + totalCompleted;
+                convHtml = '<div class="conv-toggle" onclick="var el=document.getElementById(\'' + toggleId + '\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';">Show conversation (' + messages.length + ' messages)</div>';
+                convHtml += '<div class="conv-messages" id="' + toggleId + '" style="display:none;">';
+                for (var i = 0; i < messages.length; i++) {
+                    var msg = messages[i];
+                    var roleClass = msg.role === 'agent' ? 'agent' : 'customer';
+                    var roleLabel = msg.role === 'agent' ? 'Agent' : 'Customer';
+                    convHtml += '<div class="msg"><span class="msg-role ' + roleClass + '">' + roleLabel + ':</span> ' + escapeHtml(msg.content || '') + '</div>';
+                }
+                convHtml += '</div>';
+            }
+
+            item.innerHTML = header + explHtml + convHtml;
+            document.getElementById('live-evaluations-list').appendChild(item);
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text || ''));
+            return div.innerHTML;
+        }
+
+        {% if run_active %}
+        startSSE();
+        {% endif %}
+    })();
+    </script>
+</body>
+</html>

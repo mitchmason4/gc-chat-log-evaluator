@@ -1,0 +1,42 @@
+name: Intent Classification Evaluation Suite
+
+goals:
+  - name: Product Complaint
+    description: Customer is reporting a problem with a product (e.g., injection pen malfunction, defective device, medication not dispensed)
+    criteria: >
+      The agent's response must contain the exact intent label "Product Complaint".
+      SUCCESS: The agent responds with "Product Complaint" (with or without additional text).
+      FAILURE: The agent responds with a different intent label, multiple labels,
+      or gives a conversational reply without the words "Product Complaint".
+
+  - name: Voucher/Refund/Replacement
+    description: Customer is calling to follow up on or request a voucher, refund, or replacement for a defective product
+    criteria: >
+      The agent's response must contain the exact intent label "Voucher/Refund/Replacement".
+      SUCCESS: The agent responds with "Voucher/Refund/Replacement" (with or without additional text).
+      FAILURE: The agent responds with a different intent label, multiple labels,
+      or gives a conversational reply without the words "Voucher/Refund/Replacement".
+
+  - name: Brand Query
+    description: Customer has questions about pricing, cost changes, or brand-specific information (e.g., Zepbound pricing, GLP-1 legislation)
+    criteria: >
+      The agent's response must contain the exact intent label "Brand Query".
+      SUCCESS: The agent responds with "Brand Query" (with or without additional text).
+      FAILURE: The agent responds with a different intent label, multiple labels,
+      or gives a conversational reply without the words "Brand Query".
+
+  - name: Access/Availability
+    description: Customer is trying to access medication, understand prescription availability, or get connected to the right service (e.g., Lilly Direct)
+    criteria: >
+      The agent's response must contain the exact intent label "Access/Availability".
+      SUCCESS: The agent responds with "Access/Availability" (with or without additional text).
+      FAILURE: The agent responds with a different intent label, multiple labels,
+      or gives a conversational reply without the words "Access/Availability".
+
+  - name: Adverse Event
+    description: Customer is reporting side effects or adverse reactions from medication use
+    criteria: >
+      The agent's response must contain the exact intent label "Adverse Event".
+      SUCCESS: The agent responds with "Adverse Event" (with or without additional text).
+      FAILURE: The agent responds with a different intent label, multiple labels,
+      or gives a conversational reply without the words "Adverse Event".
