@@ -57,22 +57,26 @@ python3 -m src.cli chatlog.csv goals.yaml --ollama-model llama3.2
 ## Evaluation Suite Format
 
 ```yaml
-name: My Evaluation Suite
+name: Banking Agent Evaluation Suite
 
 goals:
-  - name: Product Complaint
-    description: Customer is reporting a problem with a product
+  - name: Account Balance Inquiry
+    description: Customer wants to check the balance on one or more of their accounts
     criteria: >
-      The agent's response must contain the exact intent label "Product Complaint".
-      SUCCESS: The agent responds with "Product Complaint".
-      FAILURE: The agent responds with a different label or a conversational reply.
+      The agent successfully provides the customer with their account balance.
+      SUCCESS: The agent displays or states a specific dollar amount for at least
+      one account (checking, savings, credit, etc.).
+      FAILURE: The agent fails to provide a balance, gets stuck in a verification
+      loop, or the conversation ends without the customer receiving balance information.
 
-  - name: Voucher/Refund/Replacement
-    description: Customer is requesting a voucher, refund, or replacement
+  - name: Bill Payment
+    description: Customer wants to pay a bill (electricity, water, internet, etc.)
     criteria: >
-      The agent's response must contain "Voucher/Refund/Replacement".
-      SUCCESS: The agent responds with the correct label.
-      FAILURE: The agent responds with a different label.
+      The agent successfully processes or confirms a bill payment.
+      SUCCESS: The agent confirms the payment has been processed, provides a
+      transaction reference, or confirms the payment details (amount, provider, account).
+      FAILURE: The agent fails to complete the payment, gets stuck asking for
+      information repeatedly, or the conversation ends without payment confirmation.
 ```
 
 ### Goal Fields
