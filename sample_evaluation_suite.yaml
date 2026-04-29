@@ -1,42 +1,47 @@
-name: Intent Classification Evaluation Suite
+name: Banking Agent Evaluation Suite
 
 goals:
-  - name: Product Complaint
-    description: Customer is reporting a problem with a product (e.g., injection pen malfunction, defective device, medication not dispensed)
+  - name: Account Balance Inquiry
+    description: Customer wants to check the balance on one or more of their accounts
     criteria: >
-      The agent's response must contain the exact intent label "Product Complaint".
-      SUCCESS: The agent responds with "Product Complaint" (with or without additional text).
-      FAILURE: The agent responds with a different intent label, multiple labels,
-      or gives a conversational reply without the words "Product Complaint".
+      The agent successfully provides the customer with their account balance.
+      SUCCESS: The agent displays or states a specific dollar amount for at least
+      one account (checking, savings, credit, etc.).
+      FAILURE: The agent fails to provide a balance, gets stuck in a verification
+      loop, or the conversation ends without the customer receiving balance information.
 
-  - name: Voucher/Refund/Replacement
-    description: Customer is calling to follow up on or request a voucher, refund, or replacement for a defective product
+  - name: Bill Payment
+    description: Customer wants to pay a bill (electricity, water, internet, etc.)
     criteria: >
-      The agent's response must contain the exact intent label "Voucher/Refund/Replacement".
-      SUCCESS: The agent responds with "Voucher/Refund/Replacement" (with or without additional text).
-      FAILURE: The agent responds with a different intent label, multiple labels,
-      or gives a conversational reply without the words "Voucher/Refund/Replacement".
+      The agent successfully processes or confirms a bill payment.
+      SUCCESS: The agent confirms the payment has been processed, provides a
+      transaction reference, or confirms the payment details (amount, provider, account).
+      FAILURE: The agent fails to complete the payment, gets stuck asking for
+      information repeatedly, or the conversation ends without payment confirmation.
 
-  - name: Brand Query
-    description: Customer has questions about pricing, cost changes, or brand-specific information (e.g., Zepbound pricing, GLP-1 legislation)
+  - name: Appointment Booking
+    description: Customer wants to schedule an appointment
     criteria: >
-      The agent's response must contain the exact intent label "Brand Query".
-      SUCCESS: The agent responds with "Brand Query" (with or without additional text).
-      FAILURE: The agent responds with a different intent label, multiple labels,
-      or gives a conversational reply without the words "Brand Query".
+      The agent successfully books an appointment with a confirmed date and time.
+      SUCCESS: The agent confirms a specific appointment date, time, and any
+      relevant details (location, purpose).
+      FAILURE: The agent fails to confirm an appointment, or the conversation
+      ends without a booking confirmation.
 
-  - name: Access/Availability
-    description: Customer is trying to access medication, understand prescription availability, or get connected to the right service (e.g., Lilly Direct)
+  - name: Password Reset
+    description: Customer wants to reset their account password
     criteria: >
-      The agent's response must contain the exact intent label "Access/Availability".
-      SUCCESS: The agent responds with "Access/Availability" (with or without additional text).
-      FAILURE: The agent responds with a different intent label, multiple labels,
-      or gives a conversational reply without the words "Access/Availability".
+      The agent successfully initiates a password reset for the customer.
+      SUCCESS: The agent confirms a reset link has been sent, a temporary
+      password has been issued, or the password has been changed.
+      FAILURE: The agent fails to initiate the reset, or the conversation
+      ends without confirmation that the password process has started.
 
-  - name: Adverse Event
-    description: Customer is reporting side effects or adverse reactions from medication use
+  - name: Fund Transfer
+    description: Customer wants to transfer money between accounts
     criteria: >
-      The agent's response must contain the exact intent label "Adverse Event".
-      SUCCESS: The agent responds with "Adverse Event" (with or without additional text).
-      FAILURE: The agent responds with a different intent label, multiple labels,
-      or gives a conversational reply without the words "Adverse Event".
+      The agent successfully processes a fund transfer between accounts.
+      SUCCESS: The agent confirms the transfer with details (amount, source
+      account, destination account) or provides a confirmation number.
+      FAILURE: The agent fails to complete the transfer, or the conversation
+      ends without transfer confirmation.
